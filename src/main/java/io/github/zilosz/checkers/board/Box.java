@@ -1,6 +1,8 @@
-package io.github.zilosz.checkers.game.board;
+package io.github.zilosz.checkers.board;
 
-import io.github.zilosz.checkers.game.board.piece.Piece;
+import io.github.zilosz.checkers.board.piece.Piece;
+import io.github.zilosz.checkers.util.Coordinate;
+import io.github.zilosz.checkers.util.MoveDirection;
 import javafx.geometry.VPos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.input.MouseEvent;
@@ -19,9 +21,9 @@ public class Box extends Canvas {
 
     private static final Color PLAYABLE_COLOR = Color.BLACK;
     private static final Color PLAYABLE_FOCUS_COLOR = Color.GRAY;
-    private static final Color USELESS_COLOR = Color.RED;
+    private static final Color USELESS_COLOR = Color.WHITE;
+
     private static final double FONT_TO_SIZE_RATIO = 0.8;
-    private static final double TEXT_HEIGHT_OFFSET = -5;
 
     private final Board board;
     @Getter private final Coordinate coordinate;
@@ -80,7 +82,7 @@ public class Box extends Canvas {
     public void drawText(String text, Color color) {
         getGraphicsContext2D().setFont(new Font(size * FONT_TO_SIZE_RATIO));
         getGraphicsContext2D().setStroke(color);
-        getGraphicsContext2D().strokeText(text, size / 2, size / 2 + TEXT_HEIGHT_OFFSET);
+        getGraphicsContext2D().strokeText(text, size / 2, size / 2);
     }
 
     public boolean hasPlayablePiece() {
@@ -212,10 +214,6 @@ public class Box extends Canvas {
                     }
                 }
             }
-        }
-
-        if (!jumps.isEmpty()) {
-            steps.clear();
         }
 
         return new Pair<>(steps, jumps);

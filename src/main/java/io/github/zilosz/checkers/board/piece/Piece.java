@@ -1,7 +1,7 @@
-package io.github.zilosz.checkers.game.board.piece;
+package io.github.zilosz.checkers.board.piece;
 
-import io.github.zilosz.checkers.game.board.Box;
-import io.github.zilosz.checkers.game.board.MoveDirection;
+import io.github.zilosz.checkers.board.Box;
+import io.github.zilosz.checkers.util.MoveDirection;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -13,7 +13,7 @@ public class Piece {
     private static final double SIZE_RATIO = 0.85;
 
     @Getter private final TeamColor color;
-    @Getter private boolean isKing = false;
+    private boolean isKing = false;
     private List<MoveDirection> moveDirections = new ArrayList<>();
 
     public Piece(TeamColor color, MoveDirection... directions) {

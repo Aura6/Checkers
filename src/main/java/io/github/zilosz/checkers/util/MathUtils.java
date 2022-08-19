@@ -6,10 +6,6 @@ public class MathUtils {
         return n % 2 == 0;
     }
 
-    public static boolean isOdd(double n) {
-        return n % 2 != 0;
-    }
-
     public static boolean testProbability(double percent) {
         return Math.random() < percent;
     }

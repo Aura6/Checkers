@@ -3,9 +3,8 @@ module io.github.zilosz.checkers {
     requires javafx.fxml;
     requires static lombok;
     exports io.github.zilosz.checkers;
-    exports io.github.zilosz.checkers.home;
-    opens io.github.zilosz.checkers.home.controller to javafx.fxml;
-    opens io.github.zilosz.checkers.game.controller to javafx.fxml;
-    exports io.github.zilosz.checkers.game.board;
-    exports io.github.zilosz.checkers.game.board.piece;
+    opens io.github.zilosz.checkers.controllers to javafx.fxml;
+    exports io.github.zilosz.checkers.util;
+    exports io.github.zilosz.checkers.board;
+    exports io.github.zilosz.checkers.board.piece;
 }

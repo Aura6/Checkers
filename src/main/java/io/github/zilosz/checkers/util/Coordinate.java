@@ -1,6 +1,4 @@
-package io.github.zilosz.checkers.game.board;
-
-import io.github.zilosz.checkers.util.MathUtils;
+package io.github.zilosz.checkers.util;
 
 public record Coordinate(int row, int column) {
 

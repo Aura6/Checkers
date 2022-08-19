@@ -1,8 +1,10 @@
-package io.github.zilosz.checkers.game.board;
+package io.github.zilosz.checkers.board;
 
-import io.github.zilosz.checkers.game.board.piece.Piece;
-import io.github.zilosz.checkers.game.board.piece.TeamColor;
+import io.github.zilosz.checkers.board.piece.Piece;
+import io.github.zilosz.checkers.board.piece.TeamColor;
+import io.github.zilosz.checkers.util.Coordinate;
 import io.github.zilosz.checkers.util.MathUtils;
+import io.github.zilosz.checkers.util.MoveDirection;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.canvas.Canvas;
@@ -27,8 +29,8 @@ import java.util.stream.Stream;
 
 public class Board extends GridPane {
 
-    private static final TeamColor YOUR_COLOR = new TeamColor(Color.WHITE, Color.RED);
-    private static final TeamColor ENEMY_COLOR = new TeamColor(Color.BLUE, Color.WHITE);
+    private static final TeamColor YOUR_COLOR = new TeamColor(Color.BLUE, Color.WHITE);
+    private static final TeamColor ENEMY_COLOR = new TeamColor(Color.RED, Color.GOLD);
 
     private static final double TASKBAR_HEIGHT = 25;
 
@@ -38,6 +40,7 @@ public class Board extends GridPane {
     private final int rows;
     private final int columns;
     private final int pieceCount;
+    private final boolean forceJump;
     private final double boxSize;
     @Getter private TeamColor turnColor;
     @Getter @Setter private Box jumpSource;
@@ -47,16 +50,16 @@ public class Board extends GridPane {
     private final Hashtable<Box, Set<Box>> steps = new Hashtable<>();
     private final Hashtable<Box, Map<Box, Box>> jumps = new Hashtable<>();
 
-    public Board(HBox turnPane, Canvas turnPieceCanvas, Label turnLabel, int rows, int columns, int pieceCount) {
+    public Board(HBox turnPane, Canvas turnPieceCanvas, Label turnLabel, int rows, int columns, int pieceCount, boolean forceJump) {
         this.turnPane = turnPane;
         this.turnPieceCanvas = turnPieceCanvas;
         this.turnLabel = turnLabel;
         this.rows = rows;
         this.columns = columns;
         this.pieceCount = pieceCount;
+        this.forceJump = forceJump;
 
         setAlignment(Pos.CENTER);
-        setGridLinesVisible(true);
 
         Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
         double height = bounds.getHeight() - turnPane.getPrefHeight() - TASKBAR_HEIGHT;
@@ -142,7 +145,7 @@ public class Board extends GridPane {
     }
 
     public boolean canMove(Box from, Box to) {
-        return jumps.get(from).containsKey(to) || jumps.values().stream().allMatch(Map::isEmpty) && steps.get(from).contains(to);
+        return jumps.get(from).containsKey(to) || (!forceJump || jumps.values().stream().allMatch(Map::isEmpty)) && steps.get(from).contains(to);
     }
 
     public Box getBoxJumpedOver(Box from, Box to) {
@@ -165,6 +168,6 @@ public class Board extends GridPane {
         turnLabel.setText(turnColor == YOUR_COLOR ? "You win!" : "You lost!");
         turnColor = null;
 
-        return false;
+        return true;
     }
 }

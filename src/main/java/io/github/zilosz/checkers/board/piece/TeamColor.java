@@ -1,4 +1,4 @@
-package io.github.zilosz.checkers.game.board.piece;
+package io.github.zilosz.checkers.board.piece;
 
 import javafx.scene.paint.Color;
 

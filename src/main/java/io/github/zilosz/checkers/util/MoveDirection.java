@@ -1,4 +1,4 @@
-package io.github.zilosz.checkers.game.board;
+package io.github.zilosz.checkers.util;
 
 import lombok.Getter;
 

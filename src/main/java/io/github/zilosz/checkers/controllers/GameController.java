@@ -1,7 +1,7 @@
-package io.github.zilosz.checkers.game.controller;
+package io.github.zilosz.checkers.controllers;
 
 import io.github.zilosz.checkers.Main;
-import io.github.zilosz.checkers.game.board.Board;
+import io.github.zilosz.checkers.board.Board;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.canvas.Canvas;
@@ -18,6 +18,7 @@ public class GameController {
     @FXML private VBox container;
     @FXML private HBox turnPane;
     @FXML private Canvas turnPieceCanvas;
+
     private Board board;
 
     @FXML
@@ -39,8 +40,8 @@ public class GameController {
         board.setup();
     }
 
-    public void createBoard(int rows, int columns, int pieceCount) {
-        board = new Board(turnPane, turnPieceCanvas, turnLabel, rows, columns, pieceCount);
+    public void createBoard(int rows, int columns, int pieceCount, boolean forceJump) {
+        board = new Board(turnPane, turnPieceCanvas, turnLabel, rows, columns, pieceCount, forceJump);
         board.setup();
         container.getChildren().add(board);
     }
