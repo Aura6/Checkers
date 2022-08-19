@@ -1,6 +1,5 @@
 package io.github.zilosz.checkers.board;
 
-import io.github.zilosz.checkers.board.piece.Piece;
 import io.github.zilosz.checkers.util.Coordinate;
 import io.github.zilosz.checkers.util.MoveDirection;
 import javafx.geometry.VPos;
@@ -86,7 +85,7 @@ public class Box extends Canvas {
     }
 
     public boolean hasPlayablePiece() {
-        return piece != null && piece.getColor().equals(board.getTurnColor());
+        return piece != null && piece.getTeam() == board.getGoingTeam();
     }
 
     private void highlight() {
@@ -177,7 +176,7 @@ public class Box extends Canvas {
         }
 
         if (!destination.isJumpDestination() || destination.getPossibleMoves().getValue().isEmpty()) {
-            board.updateTurn(board.getOppositeColor());
+            board.updateTurn(board.getOppositeTeam());
 
         } else if (destination.isJumpDestination()) {
             board.resetMarkers();
@@ -202,7 +201,7 @@ public class Box extends Canvas {
                 if (oneAwayBox.getPiece() == null) {
                     steps.add(oneAwayBox);
 
-                } else if (oneAwayBox.getPiece().getColor() != piece.getColor()) {
+                } else if (oneAwayBox.getPiece().getTeam() != piece.getTeam()) {
                     Coordinate twoAwayCoord = oneAwayCoord.add(direction.getChange());
 
                     if (board.isCoordinateValid(twoAwayCoord)) {

@@ -18,7 +18,6 @@ public class GameController {
     @FXML private VBox container;
     @FXML private HBox turnPane;
     @FXML private Canvas turnPieceCanvas;
-
     private Board board;
 
     @FXML
@@ -28,15 +27,9 @@ public class GameController {
 
     @FXML
     void reset() {
-        board.getChildren().clear();
-
-        turnLabel.setText("Turn:");
         turnLabel.setTextFill(Color.BLACK);
-
-        if (!turnPane.getChildren().contains(turnPieceCanvas)) {
-            turnPane.getChildren().add(turnPieceCanvas);
-        }
-
+        turnLabel.setText("Turn:");
+        board.getChildren().clear();
         board.setup();
     }
 

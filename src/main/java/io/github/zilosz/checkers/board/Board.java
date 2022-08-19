@@ -1,25 +1,23 @@
 package io.github.zilosz.checkers.board;
 
-import io.github.zilosz.checkers.board.piece.Piece;
-import io.github.zilosz.checkers.board.piece.TeamColor;
 import io.github.zilosz.checkers.util.Coordinate;
 import io.github.zilosz.checkers.util.MathUtils;
-import io.github.zilosz.checkers.util.MoveDirection;
+import io.github.zilosz.checkers.util.Team;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 import javafx.util.Pair;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
@@ -29,12 +27,8 @@ import java.util.stream.Stream;
 
 public class Board extends GridPane {
 
-    private static final TeamColor YOUR_COLOR = new TeamColor(Color.BLUE, Color.WHITE);
-    private static final TeamColor ENEMY_COLOR = new TeamColor(Color.RED, Color.GOLD);
-
     private static final double TASKBAR_HEIGHT = 25;
 
-    private final HBox turnPane;
     private final Canvas turnPieceCanvas;
     private final Label turnLabel;
     private final int rows;
@@ -42,16 +36,15 @@ public class Board extends GridPane {
     private final int pieceCount;
     private final boolean forceJump;
     private final double boxSize;
-    @Getter private TeamColor turnColor;
     @Getter @Setter private Box jumpSource;
     private Box[][] grid;
     private List<Box> playableBoxes;
-    private HashMap<TeamColor, Integer> piecesLeft;
+    private HashMap<Team, Integer> piecesLeft;
     private final Hashtable<Box, Set<Box>> steps = new Hashtable<>();
     private final Hashtable<Box, Map<Box, Box>> jumps = new Hashtable<>();
+    @Getter private Team goingTeam;
 
     public Board(HBox turnPane, Canvas turnPieceCanvas, Label turnLabel, int rows, int columns, int pieceCount, boolean forceJump) {
-        this.turnPane = turnPane;
         this.turnPieceCanvas = turnPieceCanvas;
         this.turnLabel = turnLabel;
         this.rows = rows;
@@ -66,35 +59,37 @@ public class Board extends GridPane {
         boxSize = Math.min(height / rows, bounds.getWidth() / columns);
     }
 
+    public Team getOppositeTeam() {
+        return goingTeam == Team.TOP ? Team.BOTTOM : Team.TOP;
+    }
+
     private Stream<Box> getMovableBoxStream() {
         return playableBoxes.stream().filter(Box::hasPlayablePiece);
+    }
+
+    private void placePieces(Collection<Box> playableWithPiece, Team team) {
+        playableWithPiece.stream().limit(pieceCount).forEach(box -> box.givePiece(new Piece(team)));
     }
 
     private void registerBoxMoves(Box box) {
         Pair<Set<Box>, Hashtable<Box, Box>> moves = box.getPossibleMoves();
         steps.put(box, moves.getKey());
         jumps.put(box, moves.getValue());
-        moves.getValue().keySet().forEach(dest -> dest.updateMarkerColor(turnColor.piece()));
-    }
-
-    private void placePieces(List<Box> playable, TeamColor color, MoveDirection... directions) {
-        playable.stream().limit(pieceCount).forEach(box -> box.givePiece(new Piece(color, directions)));
+        moves.getValue().keySet().forEach(dest -> dest.updateMarkerColor(goingTeam.getPieceColor()));
     }
 
     public void registerMoves() {
         getMovableBoxStream().forEach(this::registerBoxMoves);
     }
 
-    public void updateTurn(TeamColor turnColor) {
-        this.turnColor = turnColor;
-        turnPieceCanvas.getGraphicsContext2D().setFill(turnColor.piece());
+    public void updateTurn(Team goingTeam) {
+        this.goingTeam = goingTeam;
+
+        turnPieceCanvas.getGraphicsContext2D().setFill(goingTeam.getPieceColor());
         turnPieceCanvas.getGraphicsContext2D().fillOval(0, 0, turnPieceCanvas.getWidth(), turnPieceCanvas.getHeight());
+
         resetMarkers();
         registerMoves();
-    }
-
-    public TeamColor getOppositeColor() {
-        return turnColor == YOUR_COLOR ? ENEMY_COLOR : YOUR_COLOR;
     }
 
     public void resetMarkers() {
@@ -105,6 +100,7 @@ public class Board extends GridPane {
 
     public void setup() {
         playableBoxes = new ArrayList<>();
+        Deque<Box> backwardsPlayableBoxes = new ArrayDeque<>();
         grid = new Box[rows][columns];
 
         for (int r = 0; r < rows; r++) {
@@ -117,21 +113,19 @@ public class Board extends GridPane {
 
                 if (coordinate.isPlayable()) {
                     playableBoxes.add(box);
+                    backwardsPlayableBoxes.addFirst(box);
                 }
             }
         }
 
-        placePieces(playableBoxes, ENEMY_COLOR, MoveDirection.DOWN_LEFT, MoveDirection.DOWN_RIGHT);
-
-        List<Box> boxes = new ArrayList<>(playableBoxes);
-        Collections.reverse(boxes);
-        placePieces(boxes, YOUR_COLOR, MoveDirection.UP_LEFT, MoveDirection.UP_RIGHT);
+        placePieces(playableBoxes, Team.TOP);
+        placePieces(backwardsPlayableBoxes, Team.BOTTOM);
 
         piecesLeft = new HashMap<>();
-        piecesLeft.put(YOUR_COLOR, pieceCount);
-        piecesLeft.put(ENEMY_COLOR, pieceCount);
+        piecesLeft.put(Team.TOP, pieceCount);
+        piecesLeft.put(Team.BOTTOM, pieceCount);
 
-        updateTurn(MathUtils.testProbability(0.5) ? YOUR_COLOR : ENEMY_COLOR);
+        updateTurn(MathUtils.simulateProbability(0.5) ? Team.TOP : Team.BOTTOM);
 
         jumpSource = null;
     }
@@ -153,20 +147,17 @@ public class Board extends GridPane {
     }
 
     public boolean canBoxBecomeKing(Box box) {
-        return box.getPiece().getColor() == YOUR_COLOR && box.getCoordinate().row() == 0 || box.getCoordinate().row() == rows - 1;
+        return box.getPiece().getTeam() == Team.TOP && box.getCoordinate().row() == 0 || box.getCoordinate().row() == rows - 1;
     }
 
     public boolean checkGame() {
-        TeamColor key = getOppositeColor();
-        piecesLeft.put(key, piecesLeft.get(key) - 1);
-        boolean valid = piecesLeft.get(key) > 0;
+        Team opposite = getOppositeTeam();
+        piecesLeft.put(opposite, piecesLeft.get(opposite) - 1);
 
-        if (valid) return false;
+        if (piecesLeft.get(opposite) > 0) return false;
 
-        turnPane.getChildren().remove(turnPieceCanvas);
-        turnLabel.setTextFill(turnColor.piece());
-        turnLabel.setText(turnColor == YOUR_COLOR ? "You win!" : "You lost!");
-        turnColor = null;
+        turnLabel.setTextFill(goingTeam.getPieceColor());
+        turnLabel.setText("Winner:");
 
         return true;
     }

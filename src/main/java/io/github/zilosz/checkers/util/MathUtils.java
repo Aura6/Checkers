@@ -6,7 +6,7 @@ public class MathUtils {
         return n % 2 == 0;
     }
 
-    public static boolean testProbability(double percent) {
+    public static boolean simulateProbability(double percent) {
         return Math.random() < percent;
     }
 
